@@ -48,6 +48,7 @@ jobs:
                   BOT_UID: ${{ steps.get-user-id.outputs.user-id }}
                   GH_TOKEN: ${{ steps.app-token.outputs.token }}
             - run: cat ./.git/config
+            - run: git config --list --show-origin
             - name: pull changes from rustc and create PR
               run: |
                   echo "you really are an idiot, aren't you?" > what_she_said.txt
@@ -61,7 +62,7 @@ jobs:
 
 
                   # Create a PR
-                  BRANCH="idiot-$(date -u +%Y-%m-%d)"
+                  BRANCH="idiot-$(date -u +%Y-%m-%d-%N)"
                   git switch -c $BRANCH
                   git push -u origin $BRANCH
                   gh pr create -B master --title 'IF OPENED, CLOSE ME!' --body-file message.txt
