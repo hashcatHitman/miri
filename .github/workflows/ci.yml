@@ -21,6 +21,10 @@ jobs:
         runs-on: ubuntu-latest
         if: ${{ true }}
         steps:
+            - name: setup bot git name and email
+              run: |
+                  git config --global user.name 'The Miri Cronjob Bot'
+                  git config --global user.email 'miri@cron.bot'
             # Create a token for the next step so it can create a PR that actually runs CI.
             - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
               id: app-token
@@ -31,22 +35,10 @@ jobs:
                   private-key: ${{ secrets.APP_PRIVATE_KEY }}
             - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
               with:
-                  #   token: ${{ steps.app-token.outputs.token }}
                   persist-credentials: false
-            - name: Get GitHub App User ID
-              id: get-user-id
-              run: echo "user-id=$(gh api "/users/${BOT_SLUG}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
-              env:
-                  BOT_SLUG: ${{ steps.app-token.outputs.app-slug }}
-                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
             - name: Setup `git` as bot
-              run: |
-                  git config --global user.name "${BOT_SLUG}[bot]"
-                  git config --global user.email "${BOT_UID}+${BOT_SLUG}[bot]@users.noreply.github.com"
-                  gh auth setup-git
+              run: gh auth setup-git
               env:
-                  BOT_SLUG: ${{ steps.app-token.outputs.app-slug }}
-                  BOT_UID: ${{ steps.get-user-id.outputs.user-id }}
                   GH_TOKEN: ${{ steps.app-token.outputs.token }}
             - run: cat ./.git/config
             - run: git config --list --show-origin
