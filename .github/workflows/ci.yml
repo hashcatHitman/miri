@@ -268,7 +268,7 @@ jobs:
         with:
           permission-contents: write # The cronjob needs to be able to push to the repo...
           permission-pull-requests: write # ... and create a PR.
-          app-id: ${{ vars.APP_CLIENT_ID }}
+          client-id: ${{ vars.APP_CLIENT_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Get GitHub App User ID
         id: get-user-id
