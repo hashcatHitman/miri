@@ -246,7 +246,7 @@ jobs:
   cron-rustc-pull:
     name: automatic pull from rustc
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ true }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -270,6 +270,21 @@ jobs:
           permission-pull-requests: write # ... and create a PR.
           app-id: ${{ vars.APP_CLIENT_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Get GitHub App User ID
+        id: get-user-id
+        run: echo "user-id=$(gh api "/users/${BOT_SLUG}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+        env:
+          BOT_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      - name: Setup `git` as bot
+        run: |
+          git config --global user.name "${BOT_SLUG}[bot]"
+          git config --global user.email "${BOT_UID}+${BOT_SLUG}[bot]@users.noreply.github.com"
+          gh auth setup-git
+        env:
+          BOT_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          BOT_UID: ${{ steps.get-user-id.outputs.user-id }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
       - name: pull changes from rustc and create PR
         run: |
           # Make it easier to see what happens.
@@ -297,17 +312,12 @@ jobs:
           # Format changes
           ./miri toolchain
           ./miri fmt --check || (./miri fmt && git commit -am "fmt")
-          
-          # Configure remote URL to use the GitHub App token
-          git config remote.origin.url "https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
           # Create a PR
           BRANCH="rustup-$(date -u +%Y-%m-%d)"
           git switch -c $BRANCH
           git push -u origin $BRANCH
-          gh pr create -B master --title 'Automatic Rustup' --body-file message.txt
-        env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          gh pr create -B master --title 'IF OPENED, CLOSE ME!' --body-file message.txt
 
   cron-fail-notify:
     name: cronjob failure notification
