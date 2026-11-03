@@ -67,3 +67,5 @@ jobs:
                   git switch -c $BRANCH
                   git push -u origin $BRANCH
                   gh pr create -B master --title 'IF OPENED, CLOSE ME!' --body-file message.txt
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
